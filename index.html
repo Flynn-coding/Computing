@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GPU and CPU Analyzer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        header {
+            background: #4CAF50;
+            color: white;
+            padding: 15px 0;
+            text-align: center;
+        }
+        nav a {
+            color: white;
+            padding: 15px;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        main {
+            margin: 20px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        section {
+            margin-bottom: 20px;
+        }
+        h2 {
+            margin-top: 0;
+        }
+        .card {
+            background: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding: 10px;
+            background: #eee;
+            border-top: 1px solid #ccc;
+        }
+        #search {
+            margin-bottom: 20px;
+        }
+        .hidden {
+            display: none;
+        }
+        .comparison {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        .comparison-card {
+            flex: 1;
+            margin-right: 10px;
+        }
+        .comparison-card:last-child {
+            margin-right: 0;
+        }
+        #pc-builder {
+            display: flex;
+            flex-direction: column;
+            margin-top: 20px;
+        }
+        #pc-image {
+            margin-top: 20px;
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>GPU and CPU Analyzer</h1>
+        <nav>
+            <a href="#gpus">GPUs</a>
+            <a href="#cpus">CPUs</a>
+            <a href="#analysis">Performance Analysis</a>
+            <a href="#comparison">Comparison</a>
+            <a href="#pc-builder">PC Builder</a>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <input type="text" id="search" placeholder="Search for GPUs or CPUs..." onkeyup="searchItems()">
+        </section>
+        <section id="gpus">
+            <h2>GPU Specifications</h2>
+            <div id="gpu-list"></div>
+        </section>
+        <section id="cpus">
+            <h2>CPU Specifications</h2>
+            <div id="cpu-list"></div>
+        </section>
+        <section id="analysis">
+            <h2>Performance Analysis</h2>
+            <div id="analysis-result"></div>
+        </section>
+        <section id="comparison">
+            <h2>Comparison</h2>
+            <div>
+                <label for="gpu-select">Select GPU:</label>
+                <select id="gpu-select"></select>
+                <label for="cpu-select">Select CPU:</label>
+                <select id="cpu-select"></select>
+                <button onclick="compareItems()">Compare</button>
+            </div>
+            <div class="comparison">
+                <div id="comparison-gpu" class="comparison-card hidden"></div>
+                <div id="comparison-cpu" class="comparison-card hidden"></div>
+            </div>
+        </section>
+        <section id="pc-builder">
+            <h2>PC Builder</h2>
+            <label for="cpu-builder">Select CPU:</label>
+            <select id="cpu-builder" onchange="updatePCImage()"></select>
+            <label for="gpu-builder">Select GPU:</label>
+            <select id="gpu-builder" onchange="updatePCImage()"></select>
+            <label for="cooler-builder">Select Cooler:</label>
+            <select id="cooler-builder" onchange="updatePCImage()"></select>
+            <label for="psu-builder">Select PSU:</label>
+            <select id="psu-builder" onchange="updatePCImage()"></select>
+            <label for="case-builder">Select Case:</label>
+            <select id="case-builder" onchange="updatePCImage()"></select>
+            <img id="pc-image" src="" alt="PC Build Image" class="hidden">
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 GPU and CPU Analyzer</p>
+    </footer>
+
+    <script>
+        const gpuData = [
+            {
+                name: "NVIDIA GeForce RTX 3080",
+                memory: "10 GB",
+                cores: "8704",
+                baseClock: "1440 MHz",
+                boostClock: "1710 MHz",
+                fpsBenchmark: {
+                    "Game 1": 120,
+                    "Game 2": 90
+                },
+                price: 699,
+                lifespan: "3-5 years",
+                idealUse: "Gaming, High-End Graphics",
+                image: "https://example.com/rtx3080.jpg" // Replace with actual image URL
+            },
+            {
+                name: "AMD Radeon RX 6800",
+                memory: "16 GB",
+                cores: "3840",
+                baseClock: "1700 MHz",
+                boostClock: "2105 MHz",
+                fpsBenchmark: {
+                    "Game 1": 110,
+                    "Game 2": 95
+                },
+                price: 579,
+                lifespan: "3-5 years",
+                idealUse: "Gaming, Content Creation",
+                image: "https://example.com/rx6800.jpg" // Replace with actual image URL
+            }
+        ];
+
+        const cpuData = [
+            {
+                name: "Intel Core i9-11900K",
+                cores: 8,
+                threads: 16,
+                baseClock: "3.5 GHz",
+                boostClock: "5.3 GHz",
+                fpsBenchmark: {
+                    "Game 1": 140,
+                    "Game 2": 110
+                },
+                price: 539,
+                lifespan: "3-5 years",
+                idealUse: "Gaming, Workstation",
+                image: "https://example.com/i911900k.jpg" // Replace with actual image URL
+            },
+            {
+                name: "AMD Ryzen 9 5900X",
+                cores: 12,
+                threads: 24,
+                baseClock: "3.7 GHz",
+                boostClock: "4.8 GHz",
+                fpsBenchmark: {
+                    "Game 1": 150,
+                    "Game 2": 115
+                },
+                price: 499,
+                lifespan: "4-6 years",
+                idealUse: "Gaming, Multithreaded Workloads",
+                image: "https://example.com/r95900x.jpg" // Replace with actual image URL
+            }
+        ];
+
+        const coolerData = [
+            {
+                name: "Cooler Master Hyper 212",
+                price: 35,
+                image: "https://example.com/hyper212.jpg" // Replace with actual image URL
+            },
+            {
+                name: "NZXT Kraken X63",
+                price: 150,
+                image: "https://example.com/krakenx63.jpg" // Replace with actual image URL
+            }
+        ];
+
+        const psuData = [
+            {
+                name: "Corsair RM750",
+                price: 120,
+                image: "https://example.com/corsair_rm750.jpg" // Replace with actual image URL
+            },
+            {
+                name: "EVGA 600 W1",
+                price: 50,
+                image: "https://example.com/evga600.jpg" // Replace with actual image URL
+            }
+        ];
+
+        const caseData = [
+            {
+                name: "NZXT H510",
+                price: 70,
+                image: "https://example.com/nzxt_h510.jpg" // Replace with actual image URL
+            },
+            {
+                name: "Corsair 4000D Airflow",
+                price: 90,
+                image: "https://example.com/corsair_4000d.jpg" // Replace with actual image URL
+            }
+        ];
+
+        function displayGPUs() {
+            const gpuList = document.getElementById('gpu-list');
+            const gpuSelect = document.getElementById('gpu-select');
+            const gpuBuilder = document.getElementById('gpu-builder');
+
+            gpuData.forEach(gpu => {
+                const gpuItem = document.createElement('div');
+                gpuItem.className = 'card';
+                gpuItem.innerHTML = `
+                    <h3>${gpu.name}</h3>
+                    <p>Memory: ${gpu.memory}</p>
+                    <p>Cores: ${gpu.cores}</p>
+                    <p>Base Clock: ${gpu.baseClock}</p>
+                    <p>Boost Clock: ${gpu.boostClock}</p>
+                    <p>FPS Benchmark: ${JSON.stringify(gpu.fpsBenchmark)}</p>
+                    <p>Price: $${gpu.price}</p>
+                    <p>Average Lifespan: ${gpu.lifespan}</p>
+                    <p>Ideal Use: ${gpu.idealUse}</p>
+                `;
+                gpuItem.setAttribute('data-name', gpu.name.toLowerCase()); // for searching
+                gpuList.appendChild(gpuItem);
+                
+                // Add options to GPU select and builder
+                const option = document.createElement('option');
+                option.value = gpu.name;
+                option.textContent = gpu.name;
+                gpuSelect.appendChild(option);
+                
+                const builderOption = document.createElement('option');
+                builderOption.value = gpu.image;
+                builderOption.textContent = gpu.name;
+                gpuBuilder.appendChild(builderOption);
+            });
+        }
+
+        function displayCPUs() {
+            const cpuList = document.getElementById('cpu-list');
+            const cpuSelect = document.getElementById('cpu-select');
+            const cpuBuilder = document.getElementById('cpu-builder');
+
+            cpuData.forEach(cpu => {
+                const cpuItem = document.createElement('div');
+                cpuItem.className = 'card';
+                cpuItem.innerHTML = `
+                    <h3>${cpu.name}</h3>
+                    <p>Cores: ${cpu.cores}</p>
+                    <p>Threads: ${cpu.threads}</p>
+                    <p>Base Clock: ${cpu.baseClock}</p>
+                    <p>Boost Clock: ${cpu.boostClock}</p>
+                    <p>FPS Benchmark: ${JSON.stringify(cpu.fpsBenchmark)}</p>
+                    <p>Price: $${cpu.price}</p>
+                    <p>Average Lifespan: ${cpu.lifespan}</p>
+                    <p>Ideal Use: ${cpu.idealUse}</p>
+                `;
+                cpuItem.setAttribute('data-name', cpu.name.toLowerCase()); // for searching
+                cpuList.appendChild(cpuItem);
+                
+                // Add options to CPU select and builder
+                const option = document.createElement('option');
+                option.value = cpu.name;
+                option.textContent = cpu.name;
+                cpuSelect.appendChild(option);
+                
+                const builderOption = document.createElement('option');
+                builderOption.value = cpu.image;
+                builderOption.textContent = cpu.name;
+                cpuBuilder.appendChild(builderOption);
+            });
+        }
+
+        function displayCoolers() {
+            const coolerBuilder = document.getElementById('cooler-builder');
+            coolerData.forEach(cooler => {
+                const builderOption = document.createElement('option');
+                builderOption.value = cooler.image;
+                builderOption.textContent = cooler.name;
+                coolerBuilder.appendChild(builderOption);
+            });
+        }
+
+        function displayPSUs() {
+            const psuBuilder = document.getElementById('psu-builder');
+            psuData.forEach(psu => {
+                const builderOption = document.createElement('option');
+                builderOption.value = psu.image;
+                builderOption.textContent = psu.name;
+                psuBuilder.appendChild(builderOption);
+            });
+        }
+
+        function displayCases() {
+            const caseBuilder = document.getElementById('case-builder');
+            caseData.forEach(casePart => {
+                const builderOption = document.createElement('option');
+                builderOption.value = casePart.image;
+                builderOption.textContent = casePart.name;
+                caseBuilder.appendChild(builderOption);
+            });
+        }
+
+        function updatePCImage() {
+            const cpuImage = document.getElementById('cpu-builder').value;
+            const gpuImage = document.getElementById('gpu-builder').value;
+            const coolerImage = document.getElementById('cooler-builder').value;
+            const psuImage = document.getElementById('psu-builder').value;
+            const caseImage = document.getElementById('case-builder').value;
+
+            const pcImage = document.getElementById('pc-image');
+            pcImage.src = cpuImage || gpuImage || coolerImage || psuImage || caseImage ? "https://example.com/pc_build.jpg" : ""; // Replace with actual combined image logic
+            pcImage.classList.toggle('hidden', !pcImage.src);
+        }
+
+        function analyzeBottleneck(gpu, cpu) {
+            const gpuPerformance = Math.max(...Object.values(gpu.fpsBenchmark));
+            const cpuPerformance = Math.max(...Object.values(cpu.fpsBenchmark));
+
+            let bottleneck = '';
+            if (cpuPerformance < gpuPerformance) {
+                bottleneck = `The CPU might bottleneck the GPU in performance. Consider a more powerful CPU for better utilization of the ${gpu.name}.`;
+            } else {
+                bottleneck = `The GPU and CPU are well-matched for performance.`;
+            }
+
+            return bottleneck;
+        }
+
+        function compareItems() {
+            const selectedGPUName = document.getElementById('gpu-select').value;
+            const selectedCPUName = document.getElementById('cpu-select').value;
+
+            const selectedGPU = gpuData.find(gpu => gpu.name === selectedGPUName);
+            const selectedCPU = cpuData.find(cpu => cpu.name === selectedCPUName);
+
+            if (selectedGPU) {
+                const gpuComparison = `
+                    <h3>${selectedGPU.name}</h3>
+                    <p>Memory: ${selectedGPU.memory}</p>
+                    <p>Cores: ${selectedGPU.cores}</p>
+                    <p>Base Clock: ${selectedGPU.baseClock}</p>
+                    <p>Boost Clock: ${selectedGPU.boostClock}</p>
+                    <p>FPS Benchmark: ${JSON.stringify(selectedGPU.fpsBenchmark)}</p>
+                    <p>Price: $${selectedGPU.price}</p>
+                    <p>Average Lifespan: ${selectedGPU.lifespan}</p>
+                    <p>Ideal Use: ${selectedGPU.idealUse}</p>
+                `;
+                document.getElementById('comparison-gpu').innerHTML = gpuComparison;
+                document.getElementById('comparison-gpu').classList.remove('hidden');
+            }
+
+            if (selectedCPU) {
+                const cpuComparison = `
+                    <h3>${selectedCPU.name}</h3>
+                    <p>Cores: ${selectedCPU.cores}</p>
+                    <p>Threads: ${selectedCPU.threads}</p>
+                    <p>Base Clock: ${selectedCPU.baseClock}</p>
+                    <p>Boost Clock: ${selectedCPU.boostClock}</p>
+                    <p>FPS Benchmark: ${JSON.stringify(selectedCPU.fpsBenchmark)}</p>
+                    <p>Price: $${selectedCPU.price}</p>
+                    <p>Average Lifespan: ${selectedCPU.lifespan}</p>
+                    <p>Ideal Use: ${selectedCPU.idealUse}</p>
+                `;
+                document.getElementById('comparison-cpu').innerHTML = cpuComparison;
+                document.getElementById('comparison-cpu').classList.remove('hidden');
+            }
+
+            const result = analyzeBottleneck(selectedGPU, selectedCPU);
+            document.getElementById('analysis-result').innerText = result;
+        }
+
+        function searchItems() {
+            const input = document.getElementById('search').value.toLowerCase();
+            const gpuItems = document.querySelectorAll('#gpu-list .card');
+            const cpuItems = document.querySelectorAll('#cpu-list .card');
+
+            gpuItems.forEach(item => {
+                const name = item.getAttribute('data-name');
+                item.style.display = name.includes(input) ? 'block' : 'none';
+            });
+
+            cpuItems.forEach(item => {
+                const name = item.getAttribute('data-name');
+                item.style.display = name.includes(input) ? 'block' : 'none';
+            });
+        }
+
+        // Initialize the data display
+        window.onload = function() {
+            displayGPUs();
+            displayCPUs();
+            displayCoolers();
+            displayPSUs();
+            displayCases();
+            updatePCImage(); // Initial call to set image
+        }
+    </script>
+</body>
+</html>
